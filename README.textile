@@ -19,7 +19,7 @@ You must alter your HTML code. URL of the real image must be put into data-origi
 
 <pre>
 <video loop autoplay class="lazy">
-	<source data-original="https://s3-us-west-2.amazonaws.com/s.cdpn.io/20890/ggWPinkVdo_v2_m56577569833218648.webm" />
+	<source data-original="vid/example.webm" />
 </video>
 </pre>
 
