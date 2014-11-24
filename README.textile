@@ -1,8 +1,8 @@
 h1. Lazy Load Plugin for jQuery
 
-Lazy Load delays loading of images in long web pages. Images outside of viewport wont be loaded before user scrolls to them. This is opposite of image preloading.
+Lazy Load delays loading of images and videos in long web pages. Images/Videos outside of viewport wont be loaded before user scrolls to them. This is opposite of image preloading.
 
-Using Lazy Load on long web pages containing many large images makes the page load faster. Browser will be in ready state after loading visible images. In some cases it can also help to reduce server load.
+Using Lazy Load on long web pages makes the page load faster. Browser will be in ready state after loading visible content. In some cases it can also help to reduce server load.
 
 Lazy Load is inspired by "YUI ImageLoader":http://developer.yahoo.com/yui/imageloader/ Utility by Matt Mlinac.
 
@@ -17,11 +17,17 @@ You must alter your HTML code. URL of the real image must be put into data-origi
 
 <pre><img class="lazy" data-original="img/example.jpg" width="640" height="480"></pre>
 
+<pre>
+<video loop autoplay class="lazy">
+	<source data-original="https://s3-us-west-2.amazonaws.com/s.cdpn.io/20890/ggWPinkVdo_v2_m56577569833218648.webm" />
+</video>
+</pre>
+
 then in your code do:
 
-<pre>$("img.lazy").lazyload();</pre>
+<pre>$(".lazy").lazyload();</pre>
 
-This causes all images of class lazy to be lazy loaded.
+This causes all images/video of class lazy to be lazy loaded.
 
 More information on "Lazy Load":http://www.appelsiini.net/projects/lazyload project page.
 
@@ -34,6 +40,10 @@ h1. License
 All code licensed under the "MIT License":http://www.opensource.org/licenses/mit-license.php. All images licensed under "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/deed.en_US. In other words you are basically free to do whatever you want. Just don't remove my name from the source.
 
 h1. Changelog
+
+h2. 1.9.4
+
+* Added video support * 
 
 h2. 1.9.3
 
