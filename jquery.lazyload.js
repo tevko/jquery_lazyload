@@ -1,5 +1,5 @@
 /*
- * Lazy Load - jQuery plugin for lazy loading images
+ * Lazy Load - jQuery plugin for lazy loading images 
  *
  * Copyright (c) 2007-2013 Mika Tuupola
  *
@@ -9,8 +9,10 @@
  * Project home:
  *   http://www.appelsiini.net/projects/lazyload
  *
- * Version:  1.9.3
+ * Version:  1.9.3 - ADJUSTED
  *
+ * This plugin has been edited and is different from the source.
+ * It has been extended too support videos.
  */
 
 (function($, window, document, undefined) {
@@ -20,16 +22,17 @@
         var elements = this;
         var $container;
         var settings = {
-            threshold       : 0,
+            threshold      : 0,
             failure_limit   : 0,
-            event           : "scroll",
-            effect          : "show",
-            container       : window,
+            event          : "scroll",
+            effect        : "show",
+            container      : window,
             data_attribute  : "original",
+            data_responsive_attribute : "srcset",
             skip_invisible  : true,
-            appear          : null,
+            appear        : null,
             load            : null,
-            placeholder     : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC"
+            placeholder  : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC"
         };
 
         function update() {
@@ -83,8 +86,13 @@
         }
 
         this.each(function() {
-            var self = this;
-            var $self = $(self);
+            if ($(this).parents('video').length > 0) {
+              var self = this.parentNode,
+                  $self = $(self);
+            } else {
+                var self = this;
+                var $self = $(self);
+            }
 
             self.loaded = false;
 
@@ -92,23 +100,33 @@
             if ($self.attr("src") === undefined || $self.attr("src") === false) {
                 if ($self.is("img")) {
                     $self.attr("src", settings.placeholder);
+                } else if ($self.children('source').length > 0) {
+                    $self.children('source').each(function() {
+                        $(this).attr("src", settings.placeholder);
+                    });
                 }
             }
-
             /* When appear is triggered load original image. */
-            $self.one("appear", function() {
-                if (!this.loaded) {
-                    if (settings.appear) {
-                        var elements_left = elements.length;
-                        settings.appear.call(self, elements_left, settings);
-                    }
-                    $("<img />")
+              $self.one("appear", function() {
+          
+                  if (!this.loaded) {
+                      if (settings.appear) {
+                          var elements_left = elements.length;
+                          settings.appear.call(self, elements_left, settings);
+                      }
+                   if ($self.is('img')) {
+                     $("<img />")
                         .bind("load", function() {
 
-                            var original = $self.attr("data-" + settings.data_attribute);
+                            var original = $self.attr("data-" + settings.data_attribute),
+                                origionalResponsive = $self.attr("data-" + settings.data_responsive_attribute),
+                                responsiveAttr = $self.attr("data-srcset");
                             $self.hide();
                             if ($self.is("img")) {
                                 $self.attr("src", original);
+                                if (typeof responsiveAttr !== typeof undefined && responsiveAttr !== false) {
+                                  $self.attr("srcset", origionalResponsive);
+                                }
                             } else {
                                 $self.css("background-image", "url('" + original + "')");
                             }
@@ -127,21 +145,49 @@
                                 settings.load.call(self, elements_left, settings);
                             }
                         })
-                        .attr("src", $self.attr("data-" + settings.data_attribute));
-                }
-            });
+                        .attr("src", $self.attr("data-" + settings.data_attribute))
+                            .attr("srcset", $self.attr("data-" + settings.data_responsive_attribute));
+                  
+                   } else if ($self.is('video')) {
+                        var sourceArr = [];
+                        $self.children('source').each(function() {
+                            var original = $(this).attr("data-" + settings.data_attribute);
+                            if ($(this).is("source")) {
+                                $(this).attr("src", original);
+                                sourceArr.push($(this));
+                                $(this).remove();
+                            }
+                            self.loaded = true;
 
-            /* When wanted event is triggered load original image */
-            /* by triggering appear.                              */
-            if (0 !== settings.event.indexOf("scroll")) {
-                $self.bind(settings.event, function() {
-                    if (!self.loaded) {
-                        $self.trigger("appear");
+                            /* Remove image from array so it is not looped next time. */
+                            var temp = $.grep(elements, function(element) {
+                                return !element.loaded;
+                            });
+                            elements = $(temp);
+
+                            if (settings.load) {
+                                var elements_left = elements.length;
+                                settings.load.call(self, elements_left, settings);
+                            }
+                        })
+                        .attr("src", $(this).attr("data-" + settings.data_attribute));
+                        $.each(sourceArr, function(i,e) {
+                            $self.append(sourceArr[i]);
+                        });
                     }
-                });
-            }
-        });
-
+                      
+                  }
+              });
+              /* When wanted event is triggered load original image */
+              /* by triggering appear.                            */
+              if (0 !== settings.event.indexOf("scroll")) {
+                  $self.bind(settings.event, function() {
+                      if (!self.loaded) {
+                          $self.trigger("appear");
+                      }
+                  });
+              }
+          });
         /* Check if something appears when window is resized. */
         $window.bind("resize", function() {
             update();
@@ -167,7 +213,7 @@
         return this;
     };
 
-    /* Convenience methods in jQuery namespace.           */
+    /* Convenience methods in jQuery namespace.        */
     /* Use as  $.belowthefold(element, {threshold : 100, container : window}) */
 
     $.belowthefold = function(element, settings) {
@@ -232,7 +278,7 @@
         "above-the-top"  : function(a) { return !$.belowthefold(a, {threshold : 0}); },
         "right-of-screen": function(a) { return $.rightoffold(a, {threshold : 0}); },
         "left-of-screen" : function(a) { return !$.rightoffold(a, {threshold : 0}); },
-        "in-viewport"    : function(a) { return $.inviewport(a, {threshold : 0}); },
+        "in-viewport"   : function(a) { return $.inviewport(a, {threshold : 0}); },
         /* Maintain BC for couple of versions. */
         "above-the-fold" : function(a) { return !$.belowthefold(a, {threshold : 0}); },
         "right-of-fold"  : function(a) { return $.rightoffold(a, {threshold : 0}); },
